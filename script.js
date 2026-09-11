@@ -1,13 +1,81 @@
 const data=[
-["Notebook Gamer","Eletrônicos","💻",3499.90,4299.90,19],["Smartphone 5G","Celulares","📱",1299.90,1699.90,24],
-["Headset Gamer","Acessórios","🎧",179.90,249.90,28],["Placa de Vídeo","Games","🎮",1899.90,2299.90,17],
-["Monitor 144Hz","Eletrônicos","🖥️",899.90,1099.90,18],["Teclado Mecânico","Acessórios","⌨️",219.90,299.90,27],
-["Caixa de Som","Acessórios","🔊",399.90,499.90,20],["Console Gamer","Games","🎮",2499.90,2999.90,17],
-["Smart TV 50","Eletrônicos","📺",2199.90,2699.90,19],["Celular Pro","Celulares","📱",2799.90,3299.90,15],
-["Air Fryer","Casa","🍟",349.90,449.90,22],["Robô Aspirador","Casa","🤖",899.90,1199.90,25]];
-const money=n=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});let active="Todos";
-function render(){let q=document.querySelector("#q").value.toLowerCase().trim();let list=data.filter(p=>(active==="Todos"||p[1]===active)&&(!q||p[0].toLowerCase().includes(q)||p[1].toLowerCase().includes(q)));document.querySelector("#products").innerHTML=list.map(p=>`<article class="product"><div class="pic"><span class="discount">-${p[5]}%</span>${p[2]}</div><div class="body"><div class="catname">${p[1]}</div><h3>${p[0]}</h3><div class="old">${money(p[4])}</div><div class="price">${money(p[3])}</div><a class="offer" href="#" onclick="return false">Ver oferta →</a></div></article>`).join("");document.querySelector("#count").textContent=list.length+" oferta"+(list.length===1?"":"s");document.querySelector("#empty").hidden=list.length>0}
-document.querySelector("#q").addEventListener("input",render);document.querySelector("#buscar").addEventListener("click",render);
-document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{active=b.dataset.cat;document.querySelectorAll(".cat").forEach(x=>x.classList.remove("on"));b.classList.add("on");render()});
-document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{document.querySelector("#q").value=b.dataset.q;render();document.querySelector("#ofertas").scrollIntoView({behavior:"smooth"})});
-document.querySelector("#total").textContent=data.length;render();
+  {name:"Notebook Gamer",cat:"Eletrônicos",img:"https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=85",price:3499.90,old:4299.90,discount:19,store:"Mercado Livre"},
+  {name:"Smartphone 5G",cat:"Celulares",img:"https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=85",price:1299.90,old:1699.90,discount:24,store:"Mercado Livre"},
+  {name:"Headset Gamer",cat:"Acessórios",img:"https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=85",price:179.90,old:249.90,discount:28,store:"Mercado Livre"},
+  {name:"Placa de Vídeo",cat:"Games",img:"https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=800&q=85",price:1899.90,old:2299.90,discount:17,store:"Mercado Livre"},
+  {name:"Monitor 144Hz",cat:"Eletrônicos",img:"https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=800&q=85",price:899.90,old:1099.90,discount:18,store:"Mercado Livre"},
+  {name:"Teclado Mecânico",cat:"Acessórios",img:"https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=85",price:219.90,old:299.90,discount:27,store:"Mercado Livre"},
+  {name:"Caixa de Som",cat:"Acessórios",img:"https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=800&q=85",price:399.90,old:499.90,discount:20,store:"Mercado Livre"},
+  {name:"Console Gamer",cat:"Games",img:"https://images.unsplash.com/photo-1605901309584-818e25960a8f?auto=format&fit=crop&w=800&q=85",price:2499.90,old:2999.90,discount:17,store:"Mercado Livre"},
+  {name:"Smart TV 50",cat:"Eletrônicos",img:"https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&w=800&q=85",price:2199.90,old:2699.90,discount:19,store:"Mercado Livre"},
+  {name:"Celular Pro",cat:"Celulares",img:"https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=800&q=85",price:2799.90,old:3299.90,discount:15,store:"Mercado Livre"},
+  {name:"Air Fryer",cat:"Casa",img:"https://images.unsplash.com/photo-1648132534858-8e0f2a2d9c1f?auto=format&fit=crop&w=800&q=85",price:349.90,old:449.90,discount:22,store:"Mercado Livre"},
+  {name:"Robô Aspirador",cat:"Casa",img:"https://images.unsplash.com/photo-1581579185169-5f7d0d4f1a3c?auto=format&fit=crop&w=800&q=85",price:899.90,old:1199.90,discount:25,store:"Mercado Livre"}
+];
+
+const money=n=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+let active="Todos";
+let sortMode="relevance";
+
+function filtered(){
+  const q=document.querySelector("#q").value.toLowerCase().trim();
+  let list=data.filter(p=>
+    (active==="Todos"||p.cat===active) &&
+    (!q||p.name.toLowerCase().includes(q)||p.cat.toLowerCase().includes(q))
+  );
+  if(sortMode==="discount") list.sort((a,b)=>b.discount-a.discount);
+  if(sortMode==="priceAsc") list.sort((a,b)=>a.price-b.price);
+  if(sortMode==="priceDesc") list.sort((a,b)=>b.price-a.price);
+  return list;
+}
+
+function render(){
+  const q=document.querySelector("#q").value.trim();
+  const list=filtered();
+  document.querySelector("#products").innerHTML=list.map((p,i)=>`
+    <article class="product">
+      <div class="pic">
+        <span class="discount">-${p.discount}%</span>
+        ${i<3&&!q?'<span class="hot">🔥 Destaque</span>':''}
+        <img src="${p.img}" alt="${p.name}" loading="lazy">
+      </div>
+      <div class="body">
+        <div class="catname">${p.cat}</div>
+        <h3>${p.name}</h3>
+        <div class="old">${money(p.old)}</div>
+        <div class="price">${money(p.price)}</div>
+        <div class="installments">ou em até 12x no cartão</div>
+        <a class="offer" href="#" onclick="return false">Ver oferta →</a>
+        <div class="store"><span>Loja</span><b>${p.store}</b></div>
+      </div>
+    </article>
+  `).join("");
+
+  document.querySelector("#count").textContent=`${list.length} oferta${list.length===1?"":"s"} encontrada${list.length===1?"":"s"}`;
+  document.querySelector("#searchState").textContent=q?`Busca: “${q}”`:"";
+  document.querySelector("#empty").hidden=list.length>0;
+  document.querySelector("#total").textContent=data.length;
+}
+
+document.querySelector("#searchForm").addEventListener("submit",e=>{
+  e.preventDefault(); render(); document.querySelector("#ofertas").scrollIntoView({behavior:"smooth"});
+});
+document.querySelector("#q").addEventListener("input",render);
+document.querySelector("#sort").addEventListener("change",e=>{sortMode=e.target.value;render()});
+document.querySelectorAll(".cat").forEach(b=>b.addEventListener("click",()=>{
+  active=b.dataset.cat;
+  document.querySelectorAll(".cat").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); render();
+  document.querySelector("#ofertas").scrollIntoView({behavior:"smooth"});
+}));
+document.querySelectorAll("[data-q]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelector("#q").value=b.dataset.q; render();
+  document.querySelector("#ofertas").scrollIntoView({behavior:"smooth"});
+}));
+document.querySelector("#clearSearch").addEventListener("click",()=>{
+  document.querySelector("#q").value=""; active="Todos"; sortMode="relevance";
+  document.querySelector("#sort").value="relevance";
+  document.querySelectorAll(".cat").forEach(x=>x.classList.toggle("on",x.dataset.cat==="Todos"));
+  render();
+});
+render();
